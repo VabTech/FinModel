@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Model Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Financial Model Generator</h1>
+    <div class="container">
+        <!-- Input fields for current year actuals -->
+        <div class="input-group">
+            <label for="revenue_operations">Revenue from Operations:</label>
+            <input type="number" id="revenue_operations" step="any">
+        </div>
+        <div class="input-group">
+            <label for="other_income">Other Income:</label>
+            <input type="number" id="other_income" step="any">
+        </div>
+        <div class="input-group">
+            <label for="employee_cost">Employee Cost:</label>
+            <input type="number" id="employee_cost" step="any">
+        </div>
+        <div class="input-group">
+            <label for="op_expenses">Operating Expenses:</label>
+            <input type="number" id="op_expenses" step="any">
+        </div>
+        <div class="input-group">
+            <label for="finance_cost">Finance Cost:</label>
+            <input type="number" id="finance_cost" step="any">
+        </div>
+        <div class="input-group">
+            <label for="depreciation">Depreciation:</label>
+            <input type="number" id="depreciation" step="any">
+        </div>
+        <div class="input-group">
+            <label for="cash">Cash:</label>
+            <input type="number" id="cash" step="any">
+        </div>
+        <div class="input-group">
+            <label for="debt">Debt:</label>
+            <input type="number" id="debt" step="any">
+        </div>
+        <div class="input-group">
+            <label for="equity">Equity:</label>
+            <input type="number" id="equity" step="any">
+        </div>
+
+        <!-- Input fields for assumptions -->
+        <div class="input-group">
+            <label for="revenue_growth">Revenue Growth Rate (%):</label>
+            <input type="number" id="revenue_growth" step="any">
+        </div>
+        <div class="input-group">
+            <label for="other_income_growth">Other Income Growth Rate (%):</label>
+            <input type="number" id="other_income_growth" step="any">
+        </div>
+        <div class="input-group">
+            <label for="employee_cost_growth">Employee Cost Growth Rate (%):</label>
+            <input type="number" id="employee_cost_growth" step="any">
+        </div>
+        <div class="input-group">
+            <label for="op_exp_percent">Operating Expense % of Revenue:</label>
+            <input type="number" id="op_exp_percent" step="any">
+        </div>
+        <div class="input-group">
+            <label for="tax_rate">Tax Rate (%):</label>
+            <input type="number" id="tax_rate" step="any">
+        </div>
+        <div class="input-group">
+            <label for="discount_rate">Discount Rate (%):</label>
+            <input type="number" id="discount_rate" step="any">
+        </div>
+
+        <button onclick="generateProjections()">Generate Projections</button>
+
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        function generateProjections() {
+            try {
+                // Get inputs from the GUI
+                const revenueOperations = parseFloat(document.getElementById('revenue_operations').value);
+                const otherIncome = parseFloat(document.getElementById('other_income').value);
+                const employeeCost = parseFloat(document.getElementById('employee_cost').value);
+                const opExpenses = parseFloat(document.getElementById('op_expenses').value);
+                const financeCost = parseFloat(document.getElementById('finance_cost').value);
+                const depreciation = parseFloat(document.getElementById('depreciation').value);
+                const cash = parseFloat(document.getElementById('cash').value);
+                const debt = parseFloat(document.getElementById('debt').value);
+                const equity = parseFloat(document.getElementById('equity').value);
+                const revenueGrowth = parseFloat(document.getElementById('revenue_growth').value) / 100;
+                const otherIncomeGrowth = parseFloat(document.getElementById('other_income_growth').value) / 100;
+                const employeeCostGrowth = parseFloat(document.getElementById('employee_cost_growth').value) / 100;
+                const opExpPercent = parseFloat(document.getElementById('op_exp_percent').value) / 100;
+                const taxRate = parseFloat(document.getElementById('tax_rate').value) / 100;
+                const discountRate = parseFloat(document.getElementById('discount_rate').value) / 100;
+
+                // Assumptions for projections
+                const assumptions = {
+                    revenueGrowth,
+                    otherIncomeGrowth,
+                    employeeCostGrowth,
+                    opExpPercent,
+                    taxRate,
+                    discountRate,
+                    initialRevenueOperations: revenueOperations,
+                    initialOtherIncome: otherIncome,
+                    initialEmployeeCost: employeeCost,
+                    initialOperatingExpenses: opExpenses,
+                    initialFinanceCost: financeCost,
+                    initialDepreciation: depreciation,
+                    initialCash: cash,
+                    initialDebt: debt,
+                    initialEquity: equity
+                };
+
+                // Time Frame
+                const years = [2024, 2025, 2026, 2027, 2028];
+
+                // Create DataFrames for Financial Statements
+                const incomeStatement = [];
+                const balanceSheet = [];
+                const cashFlow = [];
+
+                // Populate Financial Statements
+                for (let i = 0; i < years.length; i++) {
+                    const year = years[i];
+                    let revenueOperationsYear = assumptions.initialRevenueOperations;
+                    let otherIncomeYear = assumptions.initialOtherIncome;
+                    let employeeCostYear = assumptions.initialEmployeeCost;
+                    let operatingExpensesYear = assumptions.initialOperatingExpenses;
+                    let financeCostYear = assumptions.initialFinanceCost;
+                    let depreciationYear = assumptions.initialDepreciation;
+                    let cashYear = assumptions.initialCash;
+                    let debtYear = assumptions.initialDebt;
+                    let equityYear = assumptions.initialEquity;
+
+                    if (i > 0) {
+                        revenueOperationsYear *= (1 + assumptions.revenueGrowth);
+                        otherIncomeYear *= (1 + assumptions.otherIncomeGrowth);
+                        employeeCostYear *= (1 + assumptions.employeeCostGrowth);
+                        operatingExpensesYear = revenueOperationsYear * assumptions.opExpPercent;
+                    }
+
+                    // Income Statement Calculations
+                    const totalRevenue = revenueOperationsYear + otherIncomeYear;
+                    const ebitda = totalRevenue - employeeCostYear - operatingExpensesYear;
+                    const ebit = ebitda - depreciationYear;
+                    const ebt = ebit - financeCostYear;
+                    const taxes = ebt * assumptions.taxRate;
+                    const netIncome = ebt - taxes;
+
+                    // Balance Sheet Calculations
+                    cashYear += netIncome - financeCostYear;
+                    const assets = cashYear + depreciationYear; // Simplified assets calculation
+                    const liabilities = debtYear; // Assuming debt as the only liability
+                    equityYear += netIncome;
+                    const balanceSheetValue = equityYear + liabilities; // Ensuring the balance sheet balances
+
+                    // Cash Flow Statement Calculations
+                    const operatingCashFlow = ebit + depreciationYear - taxes;
+                    const investingCashFlow = -depreciationYear; // Assuming depreciation represents CapEx
+                    const financingCashFlow = 0; // No financing changes assumed
+                    const netCashFlow = operatingCashFlow + investingCashFlow + financingCashFlow;
+                    cashYear += netCashFlow;
+
+                    // Update DataFrames
+                    incomeStatement.push({
+                        year,
+                        revenueOperations: revenueOperationsYear,
+                        otherIncome: otherIncomeYear,
+                        totalRevenue,
+                        employeeCost: employeeCostYear,
+                        operatingExpenses: operatingExpensesYear,
+                        ebitda,
+                        depreciation: depreciationYear,
+                        ebit,
+                        financeCost: financeCostYear,
+                        ebt,
+                        taxes,
+                        netIncome
+                    });
+
+                    balanceSheet.push({
+                        year,
+                        cash: cashYear,
+                        assets,
+                        debt: debtYear,
+                        equity: equityYear,
+                        liabilities
+                    });
+
+                    cashFlow.push({
+                        year,
+                        operatingCashFlow,
+                        investingCashFlow,
+                        financingCashFlow,
+                        netCashFlow
+                    });
+                }
+
+                // Displaying results (for simplicity)
+                let resultHtml = '<h2>Financial Projections</h2>';
+                resultHtml += '<h3>Income Statement</h3><table border="1"><tr><th>Year</th><th>Revenue Operations</th><th>Other Income</th><th>Total Revenue</th><th>Employee Cost</th><th>Operating Expenses</th><th>EBITDA</th><th>Depreciation</th><th>EBIT</th><th>Finance Cost</th><th>EBT</th><th>Taxes</th><th>Net Income</th></tr>';
+                incomeStatement.forEach(row => {
+                    resultHtml += `<tr><td>${row.year}</td><td>${row.revenueOperations.toFixed(2)}</td><td>${row.otherIncome.toFixed(2)}</td><td>${row.totalRevenue.toFixed(2)}</td><td>${row.employeeCost.toFixed(2)}</td><td>${row.operatingExpenses.toFixed(2)}</td><td>${row.ebitda.toFixed(2)}</td><td>${row.depreciation.toFixed(2)}</td><td>${row.ebit.toFixed(2)}</td><td>${row.financeCost.toFixed(2)}</td><td>${row.ebt.toFixed(2)}</td><td>${row.taxes.toFixed(2)}</td><td>${row.netIncome.toFixed(2)}</td></tr>`;
+                });
+                resultHtml += '</table>';
+
+                resultHtml += '<h3>Balance Sheet</h3><table border="1"><tr><th>Year</th><th>Cash</th><th>Assets</th><th>Debt</th><th>Equity</th><th>Liabilities</th></tr>';
+                balanceSheet.forEach(row => {
+                    resultHtml += `<tr><td>${row.year}</td><td>${row.cash.toFixed(2)}</td><td>${row.assets.toFixed(2)}</td><td>${row.debt.toFixed(2)}</td><td>${row.equity.toFixed(2)}</td><td>${row.liabilities.toFixed(2)}</td></tr>`;
+                });
+                resultHtml += '</table>';
+
+                resultHtml += '<h3>Cash Flow Statement</h3><table border="1"><tr><th>Year</th><th>Operating Cash Flow</th><th>Investing Cash Flow</th><th>Financing Cash Flow</th><th>Net Cash Flow</th></tr>';
+                cashFlow.forEach(row => {
+                    resultHtml += `<tr><td>${row.year}</td><td>${row.operatingCashFlow.toFixed(2)}</td><td>${row.investingCashFlow.toFixed(2)}</td><td>${row.financingCashFlow.toFixed(2)}</td><td>${row.netCashFlow.toFixed(2)}</td></tr>`;
+                });
+                resultHtml += '</table>';
+
+                document.getElementById('message').innerHTML = resultHtml;
+            } catch (error) {
+                document.getElementById('message').innerText = 'An error occurred: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
